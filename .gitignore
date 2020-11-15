@@ -1,0 +1,4 @@
+# Build artifacts
+a.out*
+*.o
+*.s
