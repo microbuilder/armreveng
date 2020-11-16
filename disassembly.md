@@ -288,8 +288,8 @@ equivalent of 0x200006E0, which means our **initial stack pointer** starts
 1760 B into the SRAM range of this chip (SRAM starting at 0x2000000 in the
 LPC55S69's memory map).
 
-The second record in the vector table is the **reset vector**, which is located
-in flash memory at 0xC15. (Following the ARM spec for the Cortex-M33, the
-second entry in the vector table is the **reset vector**, which is where code
-execution will begin coming out of reset). We can then jump to 0xC15 in the
-disassembled code, and start to trace code execution in assembly.
+The second record in the vector table is the **reset vector**, which is where
+code execution will begin coming out of reset. We can then jump to 0xC14 in the
+disassembled code -- 0xC14 instead of 0xC15 since ARM Cortex-M devices use
+16-bit THUMB instructions -- and start to trace code execution in assembly from
+there.
