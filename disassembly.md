@@ -140,6 +140,13 @@ binaries in these notes, but it's still useful to compare stripped and
 non-stripped output, or you may have access to non-stripped binaries when
 debugging your own systems:
 
+Check that we have a `not stripped` ELF file:
+
+```bash
+$ file a.out
+a.out: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, not stripped
+```
+
 Disassemble `a.out` to `a.out.dis` for analysis:
 
 ```bash
@@ -192,6 +199,13 @@ Now contrast this with the real-world (i.e. dumped/stripped) output below.
 ### Stripped executables
 
 #### Standard ELF executables
+
+Check that we have a `stripped` ELF file:
+
+```bash
+$ file a.out.stripped
+a.out.stripped: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, stripped
+```
 
 Disassemble `a.out.stripped` to `a.out.stripped.dis` for analysis:
 
