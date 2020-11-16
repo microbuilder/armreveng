@@ -22,32 +22,68 @@ $ arm-none-eabi-gcc -march=armv7-m --specs=nosys.specs -s src/hello_world.c -o a
 ### Other input files
 
 You may also wish to capture a binary firmware dump, and convert it to an ELF
-file for anaylsis, which can be done with a debugger as shown below.
+file for analysis, which can be done with a debugger as shown below.
 
-#### Dumping images with a Segger J-Link
+#### Dumping binary images with a Segger J-Link
+
+The `savebin` command can be used to dump flash memory to a file, and has the
+following syntax:
+
+`savebin <filename>, <addr>, <NumBytes> (hex)`
+
+Values must be provided in hex, so dumping 640 KB flash = 655360 B = `0xA0000`.
 
 ```bash
-$ JLinkExe ...
+$ JLinkExe -device lpc55s69 -if swd -speed 2000 -autoconnect 1
+J-Link>savebin firmware.bin 0x0 0xA0000
 ```
 
-#### Converting binary files to ELF
+#### Converting binary dumps to ELF executables
 
-You can convert a binary image, such as a firmware dump, into an appropriate
-ELF image as follows:
+You can convert a raw binary image, such as a firmware dump, into an
+ELF image with the following script:
 
-> `.data=0x10000000` should be updated with the appropriate offset address for
-  ROM data on the embedded device, which is the start of flash memory.
+> Script source: https://gist.github.com/tangrs/4030336
 
 ```bash
-arm-none-eabi-objcopy -I binary -O elf32-little \
-    --change-section-address .data=0x10000000 \
-    firmware.bin firmware.elf
+#!/bin/sh
+# Convert a raw binary image into an ELF file suitable for loading into a disassembler
+# Source: https://gist.github.com/tangrs/4030336
+# Usage: bin2elf.sh input.bin output.elf baseaddr
+
+cat > raw$$.ld <<EOF
+SECTIONS
+{
+EOF
+
+echo " . = $3;" >> raw$$.ld
+
+cat >> raw$$.ld <<EOF
+  .text : { *(.text) }
+}
+EOF
+
+arm-none-eabi-ld -b binary -r -o raw$$.elf $1
+arm-none-eabi-objcopy  --rename-section .data=.text \
+    --set-section-flags .data=alloc,code,load raw$$.elf
+arm-none-eabi-ld raw$$.elf -T raw$$.ld -o $2
+arm-none-eabi-strip -s $2
+
+rm -rf raw$$.elf raw$$.ld
+```
+
+For example, assuming a base flash address of 0x0, we can convert
+`samples/lpc55s69_zephyr.bin` to `firmware.elf` via:
+
+```bash
+$ scripts/bin2elf.sh samples/lpc55s69_zephyr.bin firmware.elf 0
 ```
 
 ## Object file disassembly
 
 You rarely have access to `.o` ASM build artifacts, but analysing them can
-still be useful when debugging systems you have full control over yourself.
+still be useful when debugging your own projects where you have full access to
+the compiler output.
 
 ### Dump read-only data
 
@@ -97,7 +133,7 @@ This matches the ASM output we generated quite closely.
 
 ## Executable/binary disassembly
 
-### Non-stripped binaries
+### Non-stripped executables
 
 These are generally rare in the real world, so we'll concentrate on stripped
 binaries in these notes, but it's still useful to compare stripped and
@@ -151,9 +187,11 @@ Disassembly of section .text:
 ...
 ```
 
-Now contrast this with the real-world (i.e. dumped) stripped output below.
+Now contrast this with the real-world (i.e. dumped/stripped) output below.
 
-### Stripped binaries
+### Stripped executables
+
+#### Standard ELF executables
 
 Disassemble `a.out.stripped` to `a.out.stripped.dis` for analysis:
 
@@ -191,13 +229,53 @@ Disassembly of section .fini:
     9fdc:	4770469e 			; <UNDEFINED> instruction: 0x4770469e
 ```
 
-The stripped output also includes the same three sections:
+The stripped output includes the same three sections as non-stripped files:
 
-- `.init`: 
+- `.init`: Process initialisation code (run before `main` entry point)
 - `.text`: This section contains the project code
-- `.fini`:
+- `.fini`: Process termination code (run on exit, after `main` returns)
 
 Unlike an executable containing symbol information, however, everything now
-exists in a single large function or code entry. Not having code broken up into
-logical chunks makes analysis much harder, but this is usually what we'll have
-to deal with in the real world.
+exists in a single large function or code entry.
+
+Not having code broken up into logical chunks makes analysis much harder, but
+this is usually what we'll have to deal with in the real world. Thankfully,
+there are tools to help detect function definitions within disassembled blobs
+like this, which we'll look at elsewhere.
+
+#### Dumped and converted ELF files
+
+If we were disassembling a firmware dump, previously converted to an ELF file,
+we could get the following output, where only the `.text` section would be
+present:
+
+```bash
+$ arm-none-eabi-objdump -d firmware.elf > firmware.elf.dis
+$ cat firmware.elf.dis
+firmware.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000000 <.text>:
+   0:	300006e0 	andcc	r0, r0, r0, ror #13
+   4:	10000c15 	andne	r0, r0, r5, lsl ip
+   8:	10000b8d 	andne	r0, r0, sp, lsl #23
+   c:	10000c41 	andne	r0, r0, r1, asr #24
+...
+```
+
+> NOTE: All values here have 0x10000000 added to them due to the way the
+  LPC55S69 duplicates secure and non-secure addresses in memory by placing
+  secure equivalents to non-secure addresses 0x100000000 higher.
+
+The first value in the dumped image is 0x300006E0, which is the **secure**
+equivalent of 0x200006E0, which means our **initial stack pointer** starts
+1760 B into the SRAM range of this chip (SRAM starting at 0x2000000 in the
+LPC55S69's memory map).
+
+The second record in the vector table is the **reset vector**, which is located
+in flash memory at 0xC15. (Following the ARM spec for the Cortex-M33, the
+second entry in the vector table is the **reset vector**, which is where code
+execution will begin coming out of reset). We can then jump to 0xC15 in the
+disassembled code, and start to trace code execution in assembly.

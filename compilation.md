@@ -100,7 +100,7 @@ main:
 > Note that GCC has optimised the `printf` call to use `puts` instead, and that
   the location of our `Hello, World!\n` string is loaded into `r0` via `.L3`.
 
-## Assembly phase
+### Assembly phase
 
 The following command will generate machine code (`hello_world.o`) from the
 src file:
@@ -120,7 +120,7 @@ Of note is that this file is marked as `relocatable`, meaning that any
 addresses used in this code can be moved around without breaking any
 assumptions in the code.
 
-## Linking phase
+### Linking phase
 
 ```bash
 $ arm-none-eabi-gcc -march=armv7-m --specs=nosys.specs src/hello_world.c
@@ -143,7 +143,7 @@ Statically linked means that this executable has no external dependencies. If
 it did, it would be `dynamically linked`, which is often the case for classic
 desktop applications which depend on external libraries.
 
-### Symbol Analysis (stripped/non-stripped executables)
+#### Symbol Analysis (stripped/non-stripped executables)
 
 Since this executable is also `not stripped` (the `-s` flag wasn't added),
 symbolic information is available, we means can run the following command:
