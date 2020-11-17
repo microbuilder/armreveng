@@ -153,6 +153,10 @@ Disassemble `a.out` to `a.out.dis` for analysis:
 $ arm-none-eabi-objdump -d a.out > a.out.dis
 ```
 
+> NOTE: The `-d` flag only disassembles the content of executable sections.
+  Use the `-D` flag to disassemble the contents of every section in the image
+  (such as `rodata`, etc.)
+
 Here, we can clearly see the individual functions in the `.text` section,
 such as:
 
@@ -276,7 +280,7 @@ $ arm-none-eabi-objdump -marm -Mforce-thumb -d firmware.elf > firmware.elf.dis
 ```
 
 > **IMPORTANT**: Note the `-Mforce-thumb` flag, which is required to parse the
-  data at 16-bit THUMB instructions, NOT classic 32-bit ARM instructions.
+  data as 16-bit THUMB instructions, NOT classic 32-bit ARM instructions.
 
 ```bash
 $ cat firmware.elf.dis
@@ -321,6 +325,3 @@ there.
   output via: `arm-none-eabi-objdump -D -b binary -marm -Mforce-thumb firmware.bin`,
   although in that case the contents of the `.text` section will appear under
   `.data`. The `bin2elf.sh` script renames the section for you.
-
-Continue on to [elfdumps](elfdumps.md) for details on analysing the `.text`
-section in more detail.

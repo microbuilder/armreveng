@@ -1,6 +1,7 @@
-# ARM ELF Dumps
+# ARM Initialisation
 
-Information on the structure and analysis of 32-bit ARM ELF image dumps.
+Information on the initialisation of ARMv6-M Thumb and ARMv7-M/ARMv8-M THUMB-2
+images.
 
 ## Prerequisites
 
@@ -12,6 +13,15 @@ to an ELF file, as an example. You can generate this ELF file via:
 ```bash
 $ scripts/bin2elf.sh samples/lpc55s69_zephyr.bin firmware.elf 0
 ```
+
+You should also disassemble this image to a text file via:
+
+```bash
+$ arm-none-eabi-objdump -marm -Mforce-thumb -d firmware.elf > firmware.elf.dis
+```
+
+> **IMPORTANT**: Note the `-Mforce-thumb` flag, which is required to parse the
+  data as 16-bit THUMB instructions, NOT classic 32-bit ARM instructions.
 
 ### Documentation
 
@@ -35,51 +45,28 @@ The appropriate document can be accessed from the list below:
 You will also want to download the [LPC55S69 User Manual](https://www.nxp.com/webapp/Download?colCode=UM11126),
 which contains technical details about the LPC55S69 (login may be required).
 
-## Sections
+## Vector Table Setup
 
-A stripped ARM ELF file will have a `.text` section, containing the full machine
-code, and a footer named `.shstrtab`:
-
-```bash
-$ arm-none-eabi-readelf --sections --wide firmware.elf
-There are 3 section headers, starting at offset 0x13660:
-
-Section Headers:
-  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
-  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .text             PROGBITS        00000000 010000 00364c 00  AX  0   0  1
-  [ 2] .shstrtab         STRTAB          00000000 01364c 000011 00      0   0  1
-Key to Flags:
-  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
-  L (link order), O (extra OS processing required), G (group), T (TLS),
-  C (compressed), x (unknown), o (OS specific), E (exclude),
-  y (purecode), p (processor specific)
-```
-
-The `.text` section has the `PROGBITS` type, is 13900 B long (0x364C), and has
-the `AX` flags. As shown in the text output above, this corresponds to:
-
-- `A (alloc)`, meaning that this section occupies memory during execution.
-- `X (execute)`, meaning that this section contains executable machine code.
-
-The fact that the `W (write)` flag isn't set means this data is also read-only.
-
-Our entire firmware image is held here, and this is what we will attempt to
-analyse below.
-
-## Anatomy of an ARM image
-
-If you were analyzing the unstripped ELF output from your compiler, the `.text`
-section would contain numerous functions like `<main>` and `<__start>`.
-
-Unfortunately, with stripped ARM image dumps, we have to do more of the legwork
-ourselves, as alluded to at the end of the [disassembly](disassembly.md) page.
+All ARM Cortex-M devices have a similar device initialisation process, with
+only minor variation in the contents of the startup vector table. The first
+record in the firmware image points to the bottom of the stack memory, and
+subsequent records point to important sections of code in the binary image.
 
 ### Initial stack pointer (ISP)
 
 The NXP LPC55S59 is an ARM Cortex-M33, meaning that it is based on the ARMv8-M
 architecture. As such, we know that the first word (32 bits or 4 B) in our
-firmware is the address of the **initial stack pointer**, which is 0x200006e0.
+firmware is the address of the **initial stack pointer**, 0x200006e0 in this
+case.
+
+The means that **stack memory** starts at 0x200006e0, and will grow upwards
+from there towards 0x20000000.
+
+> NOTE: All values seen in the disassembly have 0x10000000 added to them due to
+  the way the LPC55S69 duplicates secure and non-secure addresses in memory by
+  placing secure equivalents to non-secure addresses 0x100000000 higher
+  (setting bit 28 to 1). We can simply subtract the 0x10000000 for analysis
+  purposes for now.
 
 ### Vector table
 
@@ -95,16 +82,12 @@ Nested Vectored Interrupt Controller) informs us that there are 59 of
 these, for a total of 15+59 exception handlers plus the ISP, so 75 words or
 300 B, meaning the vector table ends after 0x12C.
 
-> NOTE: All values here have 0x10000000 added to them due to the way the
-  LPC55S69 duplicates secure and non-secure addresses in memory by placing
-  secure equivalents to non-secure addresses 0x100000000 higher (setting
-  bit 28 to 1).
-
 ```
 00000000 <.text>:
-                                          <START OF VECTOR TABLE>
+<START OF VECTOR TABLE>
        0:	06e0      	lsls	r0, r4, #27
        2:	3000      	adds	r0, #0        # Initial Stack Pointer
+<START OF ARM INTERRUPTS>
        4:	0c15      	lsrs	r5, r2, #16
        6:	1000      	asrs	r0, r0, #32   # 1 ARM: Reset
        8:	0b8d      	lsrs	r5, r1, #14
@@ -119,7 +102,7 @@ these, for a total of 15+59 exception handlers plus the ISP, so 75 words or
       1a:	1000      	asrs	r0, r0, #32   # 6 ARM: UsageFault
       1c:	0c41      	lsrs	r1, r0, #17
       1e:	1000      	asrs	r0, r0, #32   # 7 ARM: SecureFault
-	...                                     <RESERVED>
+... <RESERVED REGION>
       2c:	0a65      	lsrs	r5, r4, #9
       2e:	1000      	asrs	r0, r0, #32   # 11 ARM: SVCall
       30:	0c41      	lsrs	r1, r0, #17
@@ -130,16 +113,17 @@ these, for a total of 15+59 exception handlers plus the ISP, so 75 words or
       3a:	1000      	asrs	r0, r0, #32   # 14 ARM: PendSV
       3c:	0849      	lsrs	r1, r1, #1
       3e:	1000      	asrs	r0, r0, #32   # 15 ARM: SysTick
-                                          <START OF VENDOR INTERRUPTS>
+<END OF ARM INTERRUPTS>
+<START OF VENDOR INTERRUPTS>
       40:	0bed      	lsrs	r5, r5, #15
       42:	1000      	asrs	r0, r0, #32   # 16 NXP: WDT/BOD/Flash
-  ...
+... <REMOVED FOR BREVITY SAKE>
      128:	0bed      	lsrs	r5, r5, #15
      12a:	1000      	asrs	r0, r0, #32   # 16+58 NXP: SDMA1
      12c:	0bed      	lsrs	r5, r5, #15
      12e:	1000      	asrs	r0, r0, #32   # 16+59 NXP: HS_SPI
-                                          <END OF VECTOR TABLE>
-                                          <START OF CODE>
+<END OF VECTOR TABLE>
+<START OF CODE SECTION>
      130:	b953      	cbnz	r3, 0x148
      132:	b94a      	cbnz	r2, 0x148
      134:	2900      	cmp	r1, #0
@@ -148,18 +132,25 @@ these, for a total of 15+59 exception handlers plus the ISP, so 75 words or
      13a:	bf1c      	itt	ne
 ```
 
-### Reset vector
-
-The important value here is the **Reset** vector at 0x4, which points to 0xC15
-in our `.text` section.
-
 > IMPORTANT: Because ARM Cortex-M devices use **16-bit THUMB-2** instructions
   and **LSB byte ordering**, you should substract 1 from the referenced address
-  to get to the top of the half-word, meaning we want to look at 0xC14 (byte
-  3092).
+  to get to the top of the half-word, meaning we want to look at 0xC14
+  (byte 3092) for the reset vector, for example.
 
-This is the address that the ARM processor will jump to when it powers up or
-comes out of reset, and we can skip ahead to see what we find there already:
+> NOTE: The ASM output in the vector table here (`lsls`, `adds`, before
+  address 0x130) can be ignored, since this section isn't actually code, but a
+  set of vectors that must be place at the start of every valid image.
+
+## Initial Code Execution
+
+### Reset vector
+
+The important value above is the **Reset** vector at 0x4, which points to
+**0xC15** in our `.text` section. This is the address that the ARM processor
+will jump to when it powers up or comes out of reset, and where any code
+analysis will likely begin.
+
+Skipping ahead to 0xc14, we find the following code:
 
 ```
      c14:	2020      	movs	r0, #32
@@ -176,6 +167,7 @@ comes out of reset, and we can skip ahead to see what we find there already:
      c36:	f7ff ffb7 	bl	0xba8
      c3a:	0000      	movs	r0, r0
      c3c:	0820      	lsrs	r0, r4, #32
+     c3e:	3000      	adds	r0, #0
      ...
 ```
 
@@ -183,9 +175,10 @@ If this was a non stripped ELF image generated by GCC, this would resolve to
 `__start`, which is the earliest code that is executed by an image, run before
 we get anywhere near `main`.
 
-Although this is cheating, analyzing the non stripped disassembly of
-`samples/lpc55s69_zephyr.elf` would show this for the same address, very
-closely matching the disassembly output above:
+Although this is cheating, analyzing the matching non stripped disassembly of
+`samples/lpc55s69_zephyr.elf` would show the following for the same address,
+very closely matching the disassembly output above, although there are some key
+differences (0xc3c + 0xc3e, missing function names on branches, etc.):
 
 ```
 10000c14 <__start>:
