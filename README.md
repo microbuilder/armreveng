@@ -9,6 +9,7 @@ analysis for ARM-based embedded systems (mainly Cortex M).
 
 - [Compilation](compilation.md): The GCC compiler and compilation process
 - [Disassembly](disassembly.md): Binary disassembly
+- [ARM ELF dumps](elfdumps.md): Basic ARM ELF dump file structure and analysis
 
 ### ARM Assembly 
 

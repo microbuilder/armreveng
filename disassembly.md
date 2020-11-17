@@ -131,7 +131,7 @@ This matches the ASM output we generated quite closely.
 - The instruction at 0xC will make the call to `puts`, with `r0` being the
   first parameter for this call according to ARM standards.
 
-## Executable/binary disassembly
+## Executable disassembly
 
 ### Non-stripped executables
 
@@ -198,8 +198,6 @@ Now contrast this with the real-world (i.e. dumped/stripped) output below.
 
 ### Stripped executables
 
-#### Standard ELF executables
-
 Check that we have a `stripped` ELF file:
 
 ```bash
@@ -210,37 +208,47 @@ a.out.stripped: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statical
 Disassemble `a.out.stripped` to `a.out.stripped.dis` for analysis:
 
 ```bash
-$ arm-none-eabi-objdump -d a.out.stripped > a.out.stripped.dis
+$ arm-none-eabi-objdump -marm -Mforce-thumb -d a.out.stripped > a.out.stripped.dis
 ```
+
+> **IMPORTANT**: Note the `-Mforce-thumb` flag, which is required to parse the
+  data at 16-bit THUMB instructions, NOT classic 32-bit ARM instructions.
 
 This will yield the following information:
 
 ```
-$ cat a.out.dis
-a.out:     file format elf32-littlearm
+$ cat a.out.stripped.dis
+
+a.out.stripped:     file format elf32-littlearm
 
 
 Disassembly of section .init:
 
 00008000 <.init>:
-    8000:	bf00b5f8 	svclt	0x0000b5f8
-    8004:	bc08bcf8 	stclt	12, cr11, [r8], {248}	; 0xf8
-    8008:	4770469e 			; <UNDEFINED> instruction: 0x4770469e
+    8000:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+    8002:	bf00      	nop
+    8004:	bcf8      	pop	{r3, r4, r5, r6, r7}
+    8006:	bc08      	pop	{r3}
+    8008:	469e      	mov	lr, r3
+    800a:	4770      	bx	lr
 
 Disassembly of section .text:
 
 0000800c <.text>:
-    800c:	2100b508 	tstcs	r0, r8, lsl #10
-    8010:	f0004604 			; <UNDEFINED> instruction: 0xf0004604
-    8014:	4b04f97b 	blmi	0x146608
-    8018:	6bc36818 	blvs	0xff0e2080
+    800c:	b508      	push	{r3, lr}
+    800e:	2100      	movs	r1, #0
+    8010:	4604      	mov	r4, r0
+    8012:	f000 f97b 	bl	0x830c
 ...
 Disassembly of section .fini:
 
 00009fd4 <.fini>:
-    9fd4:	bf00b5f8 	svclt	0x0000b5f8
-    9fd8:	bc08bcf8 	stclt	12, cr11, [r8], {248}	; 0xf8
-    9fdc:	4770469e 			; <UNDEFINED> instruction: 0x4770469e
+    9fd4:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+    9fd6:	bf00      	nop
+    9fd8:	bcf8      	pop	{r3, r4, r5, r6, r7}
+    9fda:	bc08      	pop	{r3}
+    9fdc:	469e      	mov	lr, r3
+    9fde:	4770      	bx	lr
 ```
 
 The stripped output includes the same three sections as non-stripped files:
@@ -257,14 +265,20 @@ this is usually what we'll have to deal with in the real world. Thankfully,
 there are tools to help detect function definitions within disassembled blobs
 like this, which we'll look at elsewhere.
 
-#### Dumped and converted ELF files
+### Dumped/converted executables (`bin2elf.sh`)
 
-If we were disassembling a firmware dump, previously converted to an ELF file,
-we could get the following output, where only the `.text` section would be
-present:
+If we were disassembling a firmware dump that had been converted to an ELF
+file, we would get the following output, where only the `.text` section would
+be present:
 
 ```bash
-$ arm-none-eabi-objdump -d firmware.elf > firmware.elf.dis
+$ arm-none-eabi-objdump -marm -Mforce-thumb -d firmware.elf > firmware.elf.dis
+```
+
+> **IMPORTANT**: Note the `-Mforce-thumb` flag, which is required to parse the
+  data at 16-bit THUMB instructions, NOT classic 32-bit ARM instructions.
+
+```bash
 $ cat firmware.elf.dis
 firmware.elf:     file format elf32-littlearm
 
@@ -272,16 +286,21 @@ firmware.elf:     file format elf32-littlearm
 Disassembly of section .text:
 
 00000000 <.text>:
-   0:	300006e0 	andcc	r0, r0, r0, ror #13
-   4:	10000c15 	andne	r0, r0, r5, lsl ip
-   8:	10000b8d 	andne	r0, r0, sp, lsl #23
-   c:	10000c41 	andne	r0, r0, r1, asr #24
+       0:	06e0      	lsls	r0, r4, #27
+       2:	3000      	adds	r0, #0
+       4:	0c15      	lsrs	r5, r2, #16
+       6:	1000      	asrs	r0, r0, #32
+       8:	0b8d      	lsrs	r5, r1, #14
+       a:	1000      	asrs	r0, r0, #32
+       c:	0c41      	lsrs	r1, r0, #17
+       e:	1000      	asrs	r0, r0, #32
 ...
 ```
 
 > NOTE: All values here have 0x10000000 added to them due to the way the
   LPC55S69 duplicates secure and non-secure addresses in memory by placing
-  secure equivalents to non-secure addresses 0x100000000 higher.
+  secure equivalents to non-secure addresses 0x100000000 higher (setting
+  bit 28 to 1).
 
 The first value in the dumped image is 0x300006E0, which is the **secure**
 equivalent of 0x200006E0, which means our **initial stack pointer** starts
@@ -293,3 +312,15 @@ code execution will begin coming out of reset. We can then jump to 0xC14 in the
 disassembled code -- 0xC14 instead of 0xC15 since ARM Cortex-M devices use
 16-bit THUMB instructions -- and start to trace code execution in assembly from
 there.
+
+> The ASM output in the vector table here (`lsls`, `adds`, etc.) can be ignored,
+  since this section isn't actually code, but a set of vectors that must be at
+  the start of every valid image.
+
+> NOTE: We can also go straight from a stripped .bin file to the decompiled
+  output via: `arm-none-eabi-objdump -D -b binary -marm -Mforce-thumb firmware.bin`,
+  although in that case the contents of the `.text` section will appear under
+  `.data`. The `bin2elf.sh` script renames the section for you.
+
+Continue on to [elfdumps](elfdumps.md) for details on analysing the `.text`
+section in more detail.
