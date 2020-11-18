@@ -3,7 +3,7 @@
 The C compilation process generally consists of the following stages:
 
 - **Preprocessing**: Expansion of header files and preprocessor macros
-- **Compilation**: Conversion from preprocessed C to ASM (. (.s)
+- **Compilation**: Preprocessed C to ASM (.s)
 - **Assembly**: ASM to machine code object files (.o)
 - **Linking**: Links individual object files into single binary executable
 
@@ -157,7 +157,7 @@ $ arm-none-eabi-readelf --syms a.out | grep main
 This shows us that `main` is located at address 0x000080FD, and is 32-byte long
 function.
 
-To generated a `stripped` binary, we would add the `-s` flag, as follows,
+To generate a `stripped` binary, we would add the `-s` flag, as follows,
 which means the entire symbols table read by `readelf` won't be available:
 
 ```bash

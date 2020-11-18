@@ -6,6 +6,7 @@ Notes on disassembly of ARM binaries and object files.
 
 ### Sample build artifacts
 
+
 Parts of this section assume the object and executable output of the sample
 code described in [compilation](compilation.md), which can be generated
 as follows:
