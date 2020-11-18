@@ -222,6 +222,10 @@ IT    MI          ; skipping next instruction if value 0 or positive
 RSBMI R0, R0, #0  ; If negative, R0 = -R0
 ```
 
+> NOTE: The `MI` conditional instruction is actually encoded in machine code by
+  means of the `IT MI` statement, not `RSBMI`. For details on how condition
+  codes in ASM are actually encoded in machine code, see
+  [ARM THUMB Assembly to Machine Code](arm2machine.md).
 ### Operands
 
 Operands can be either an **immediate value** (a *constant* with specific

@@ -30,8 +30,27 @@ THUMB command in the ARMv8-M architecture reference manual:
      136:	bf08      	it	eq
      138:	2800      	cmpeq	r0, #0
      13a:	bf1c      	itt	ne
+     13c:	f04f 31ff 	movne.w	r1, #4294967295	; 0xffffffff
+     140:	f04f 30ff 	movne.w	r0, #4294967295	; 0xffffffff
 ```
 
+For convenience sake, the equivalent psuedocode for this set of instructions
+would be:
+
+```c
+// cmp	r1, #0
+// it	eq
+if (r1 == 0) {
+    // cmpeq	r0, #0
+    // itt	ne
+    if (r0 != 0) {
+        // movne.w	r1, #4294967295
+        r1 = 0xFFFFFFFF;
+        // movne.w	r0, #4294967295
+        r0 = 0xFFFFFFFF;
+    }
+}
+```
 ### Functionality
 
 According to section 2.4.30 of the ARMv8-M ARM, `CMP` for THUMB has the
@@ -100,7 +119,7 @@ assembly instructions, and vice versa.
 | 10-8  | 001      | Rn = R1 |
 | 7-0   | 00000000 | 0 (Literal value) |
 
-#### `cmpeq	r0, #0`
+#### `cmpeq	r0, #0` (`cmp` with `eq` condition code)
 
 - Binary = `0010 1000 0000 0000`
 - Hexadecimal = `0x2800`
@@ -115,4 +134,51 @@ assembly instructions, and vice versa.
 
 We should note that this instruction also has the `eq` (Equal) condition code
 suffix, though. This clearly isn't encoded in machine code calculations above,
-so how is that stored?
+so how is that stored? Condition codes in THUMB get encoded in the preceding
+`IT` instruction, as detailed in the next section.
+
+### Condition Code Encoding
+
+> See [ARM Assembly Primer](armasm_primer.md) for details on condition flags.
+
+To make an instruction conditional, you must add a **condition code suffix** to
+the instruction mnemonic. The condition code suffix enables the processor to
+test a condition based on the flags. If the condition test of a conditional
+instruction fails, the instruction:
+
+- Does not execute
+- Does not write any value to its destination register
+- Does not affect any of the flags
+- Does not generate any exception
+
+Conditional instructions can occur immediately after the instruction that
+updated the condition status flags (N/Z/C/V, etc.), or after any number of
+subsequent instructions that have not updated the flags.
+
+In the case of ...
+
+```
+     134:	2900      	cmp	r1, #0      ; Check if r1 - 0 = 0
+     136:	bf08      	it	eq          ; execute next instruction if r1 == 0
+     138:	2800      	cmpeq	r0, #0  ; Check if r0 - 0 = 0
+     13a:	bf1c      	itt	ne
+     13c:	f04f 31ff 	movne.w	r1, #4294967295	; 0xffffffff
+     140:	f04f 30ff 	movne.w	r0, #4294967295	; 0xffffffff
+```
+
+... the `it eq` is what actually encodes the condition code shown in the
+disassembly output `cmpeq r0, #0`, since there are no bits left in the 16-bit
+space used when encoding the `cmp` instruction. The extra `eq` in the `cmpeq`
+mnemonic is displayed here as a convenience, since it actually comes from the
+preceding `it eq` statement in the machine code.
+
+You can see this in the last three lines of our assembly output, where the
+`ne` condition code is also used, and `itt ne` applies the condition code to
+the two subsequent instructions (thus the two `t`s):
+
+```
+     138:	2800      	cmpeq	r0, #0 ; Check if r0 - 0 = 0
+     13a:	bf1c      	itt	ne ; Execute next two instructions if r0 != 0
+     13c:	f04f 31ff 	movne.w	r1, #4294967295	; set r1 to 0xffffffff
+     140:	f04f 30ff 	movne.w	r0, #4294967295	; set r0 to 0xffffffff
+```
