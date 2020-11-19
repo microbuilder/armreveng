@@ -21,6 +21,6 @@ These images perform a minimal initialisation of the LPC55S69, output
 Two versions of the firmware are present:
 
 - `lpc55s69_zephyr.bin` is a stripped (no symbolic information) binary images
-- `lpc55s69_zephyr.elf` is a non stripped (contains cymbolic information) ELF
+- `lpc55s69_zephyr.elf` is a non stripped (contains symbolic information) ELF
   image, which can be used to compare any disassembly output from the .bin
   file for validation purposes.

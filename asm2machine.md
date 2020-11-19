@@ -21,8 +21,12 @@ The appropriate document can be accessed from the list below:
 
 ## Example: `cmp`
 
-Based on the code snippet below, we'll discuss how to map `0x2900` (machine
-code) to `cmp r1, #0` (assembly) and back again, looking up the `cmp`
+Based on the code snippet below, we'll discuss how to map ...
+
+- `0x2900` (machine code) to `cmp r1, #0` (assembly)
+- `0x2800` (machine code) to `cmpeq r0, #0` (assembly)
+
+... and back again, looking up the `cmp`
 THUMB command in the ARMv8-M architecture reference manual:
 
 ```
@@ -32,10 +36,13 @@ THUMB command in the ARMv8-M architecture reference manual:
      13a:	bf1c      	itt	ne
      13c:	f04f 31ff 	movne.w	r1, #4294967295	; 0xffffffff
      140:	f04f 30ff 	movne.w	r0, #4294967295	; 0xffffffff
+     144:	f000 b984 	b.w	0x450
+     ...
+     450:	4770      	bx	lr
+     452:	bf00      	nop
 ```
 
-For convenience sake, the equivalent psuedocode for this set of instructions
-would be:
+The equivalent psuedocode for this subset of instructions would be:
 
 ```c
 // cmp	r1, #0
@@ -49,8 +56,19 @@ if (r1 == 0) {
         // movne.w	r0, #4294967295
         r0 = 0xFFFFFFFF;
     }
+    // b.w 0x450
+    goto 0x450;
 }
 ```
+
+> For reference sake, this code snippet comes from `__aeabi_uldivmod`, which
+  is added to handle requests for 64-bit unsigned long division in the form
+  of `a/b`. This section of code first checks if the denominator (`b`, or `r1`)
+  is 0, and if true checks if the numerator (`a`, or `r0`) is > 0, which
+  catches **divide by zero** error conditions. When this is detected, the
+  64-bit return value (`r0` and `r1`) will be set to 0xFFFFFFFFFFFFFFFF, and
+  we'll branch into `__aeabi_idiv0` at 0x450, which is an endless loop.
+
 ### Functionality
 
 According to section 2.4.30 of the ARMv8-M ARM, `CMP` for THUMB has the
