@@ -72,6 +72,9 @@ from there towards 0x20000000.
 
 The next 15+n words are the **vector table**.
 
+> For details on the intended usage of these exceptions, see:
+  [ARMv8-M Exception Types](armv8exceptions.md).
+
 The initial 15 vector table entries are common to any ARM Cortex-M33, and are
 described in [Arm Cortex-M33 Devices Generic User Guide: Vector Table](https://developer.arm.com/documentation/100235/0002/the-cortex-m33-processor/exception-model/vector-table), and shown below:
 
