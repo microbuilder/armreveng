@@ -8,21 +8,31 @@ analysis for ARM-based embedded systems (mainly Cortex M).
   are welcome, but the official ARM documentation should be your go to source
   of information.
 
-## Contents
+## Table of Contents
 
-### Reverse Engineering
+### Compilation/Disassembly
 
 - [Compilation](compilation.md): The GCC compiler and compilation process
 - [Disassembly](disassembly.md): Binary disassembly
 - [ELF Anatomy](elfanatomy.md): Totally SFW ELF anatomy lesson
-- [ARM Initialisation](arminit.md): Cortex-M image initialisation process
-- [ARMv8-M Exception/Stack Handling](armv8exceptions.md)
+- [ASM to Machine Code](asm2machine.md): ARM ASM to machine code and back again
 
-### ARM Assembly
+### ARM Architecture
 
 - [ARM Assembly Primer](armasm_primer.md): ARM THUMB(-2) assembly basics
-- [ASM to Machine Code](asm2machine.md): ARM ASM to machine code and back again
+- [Exception/Stack Handling](armv8exceptions.md): ARMv8-M exception handling
+- [ARM Initialisation](arminit.md): Cortex-M image initialisation
+
+### Technical Resources
+
 - [GNU Inline Functions](armasm_gnu_inline.md): GNU ARM inline assembly syntax
+
+## Folder Structure
+
+- `img`: Image files used in the documentation
+- `samples`: Pre-built ARMv8-M binary and ELF images for testing/examples
+- `scripts`: Useful bash scripts
+- `src`: Source files used for demonstration purposes in this guide
 
 ## License
 

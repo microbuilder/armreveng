@@ -1,5 +1,7 @@
 # ARM THUMB Assembly to Machine Code
 
+How ARM assembly mnemonics/parameters are converted to and from machine code.
+
 ## Prerequisites
 
 Depending on the ARM Cortex-M device being used, the appropriate ARM
