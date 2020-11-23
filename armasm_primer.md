@@ -61,9 +61,9 @@ The three special purpose registers are:
 
 - The **program counter** (`R15`) contains the address of the next instruction
   to be executed by the ARM core. This register will be incremented before
-  after an instruction is executed, enabling sequential program flow unless
-  a different value is written to this register, cause the code to jump to the
-  newt address.
+  an instruction is executed, enabling sequential program flow unless
+  a different value is written to this register, causing the code to jump to
+  the new address. With Thumb instructions, `PC` is always ahead by 4 bytes.
 - The **link register** (`R14`) contains the return address for subroutines,
   which usually holds the `pc` value from the previous function call so that
   the application can return to the calling address once execution of the
@@ -216,7 +216,7 @@ seen since this is the default modifier used when nothing else is specified:
 As an example, the code below makes use of the `MI` conditional instruction to
 find the absolute value of a number: `R0 = abs(R1)`.
 
-```
+```arm
 MOVS  R0, R1      ; R0 = R1, setting flags
 IT    MI          ; skipping next instruction if value 0 or positive
 RSBMI R0, R0, #0  ; If negative, R0 = -R0
@@ -271,6 +271,194 @@ Immediate values that can't meet the `#` limitations must be created using a
 `ldr` instruction in combinations with the `=<immediate|symbol>` syntax when
 indicating the value.
 
-### Examples
 
-TODO: Document a couple examples highlight the above concepts!
+## ARM Instruction Set Summary
+
+The following list isn't exhaustive or definitive, but can be useful to
+quickly identify what a specific, commonly used mnemonimic does. Consult the
+appropriate ARM Architecture Reference Manual for the definitive mnemonic and
+parameter list.
+
+> TODO: Expand with other useful instruction (`REV`, etc.)
+
+| Mnemmonic   | Description |
+|-------------|-------------|
+| `MOV`       | Move data |
+| `MVN`       | Move and negate |
+| `ADD`       | Addition |
+| `SUB`       | Subtract |
+| `MUL`       | Multiplication |
+| `LSL`       | Logical shift left (Rn << n) |
+| `LSR`       | Logical shift right (Rn >> n) |
+| `ASR`       | Arithematic shift right (div by 2, preserves sign bit) |
+| `ROR`       | Rotate right (shift right, with wrap around lsb to msb) |
+| `CMP`       | Compare |
+| `AND`       | Bitwise AND |
+| `ORR`       | Bitwise OR |
+| `EOR`       | Bitwise XOR |
+| `LDR`       | Load |
+| `STR`       | Store |
+| `LDM`       | Load multiple |
+| `STM`       | Store multiple |
+| `PUSH`      | Push on stack |
+| `POP`       | Pop off stack |
+| `B`         | Branch (`PC` relative) |
+| `BL`        | Branch w/link storage (`LR`) |
+| `BX`        | Branch and exchange |
+| `BLX`       | Branch w/link and exchange |
+
+### LDR/STR (Load/Store)
+
+These two instruction are important to understand, since they allow access to
+memory addresses outside the standard registers (`R0`, `R7`, etc.). 
+
+Only the `LDR` (load) and `STR` (store) instructions can access memory
+directly! All other instructions must move data to `Rn` via `LDR` before
+performing any operations on it.
+
+#### LDR Ra, [Rb]
+
+Loads the values at address `Rb`, and assigns it to register `Ra`.
+
+```arm
+ldr r2, [r0] # Load the value at address `r0` into `r2`
+```
+
+Note that 32-bit constants cannot be encoded in 16-bit Thumb opcodes. This
+means that the constant must be stored in the text segment, close to the
+referencing instruction, and the value is typically referenced using an offset
+relative to the `PC` address (`r15`). With Thumb instructions, `PC` is always
+offset by 4 bytes.
+
+When working with stripped files we often have to reassemble these values
+ourselves. For example, the following output
+compares the same function from the stripped ...
+
+```arm
+     454:	4901      	ldr	r1, [pc, #4]	; (0x45c)
+     456:	4802      	ldr	r0, [pc, #8]	; (0x460)
+     458:	f001 bfb2 	b.w	0x23c0
+     45c:	34b2      	adds	r4, #178	; 0xb2
+     45e:	1000      	asrs	r0, r0, #32
+     460:	34c7      	adds	r4, #199	; 0xc7
+     462:	1000      	asrs	r0, r0, #32
+```
+
+... and non stripped disassembly:
+
+```arm
+10000454 <main>:
+10000454:	4901      	ldr	r1, [pc, #4]	; (1000045c <main+0x8>)
+10000456:	4802      	ldr	r0, [pc, #8]	; (10000460 <main+0xc>)
+10000458:	f001 bfb2 	b.w	100023c0 <printk>
+1000045c:	100034b2 			; <UNDEFINED> instruction: 0x100034b2
+10000460:	100034c7 	andne	r3, r0, r7, asr #9
+```
+
+In this case, `ldr r1, [pc, #4]` points to 0x45C because `pc` = 0x454 + 4 =
+0x458, then adding the `[#4]` = 0x45C.
+
+0X45C isn't an instruction, however, even though the disassembler tries to
+understand it as one (resulting in `adds` and `asrs` mnemomnics, which we
+should ignore), and the actual meaning is a 32-bit value: `0x100034b2`. The non
+stripped output correctly represents 0x45C..0x45E as a single 32-bit
+value, although it does still try to parse them into mnemonics.
+
+In this case, `r1` is being assigned a value for use as parameter number two in
+the subsequent call to `printk` on line 0x458. `r0` is parameter number one,
+and will be passed with the contents at `0x100034c7`.
+
+The original source code for this sequence is shown below, with two parameters
+being passed in to `printk`:
+
+```c
+void main(void)
+{
+	printk("Hello World! %s\n", CONFIG_BOARD);
+}
+```
+
+Other common variants of this command are shown below:
+
+```arm
+ldr r0, [r1, #8]  ; Load from address [r1 + 8 bytes]
+ldr r0, [r1, #-8] ; Load with negative offset
+ldr r0, [r1, r2]  ; Load from address [r1 + r2]
+```
+
+`LDR` is also often used in relation to pointers in C, with the following
+equivalents between assembly and C pointer operations:
+
+- `r1` = `int *intptr = ...;`
+- `r0` = `int out;`
+
+```arm
+ldr r0, [r1]        ; out = *intptr;
+ldr r0, [r1, #4]    ; out = intptr[1];
+ldr r0, [r1, #4]!   ; out = *(++intptr); r1 changed before load
+ldr r0, [r1], #4    ; out = *(intptr++); r1 changed after load
+```
+
+#### STR Ra, [Rb]
+
+Stores the values in register `Ra` at address `Rb`.
+
+```arm
+str r2, [r1] # Assign the value of r2 to address `r1`
+```
+
+This does the opposite of `ldr`, but has similar constraints in terms of
+encoding 32-bit values, and will often be associated with a `ldr` operation
+that places a 32-bit value in a register first.
+
+For example, the following implements `__printk_hook_install`:
+
+```arm
+     504:	4b01      	ldr	r3, [pc, #4]	; (0x50c)
+     506:	6018      	str	r0, [r3, #0]
+     508:	4770      	bx	lr
+     50a:	bf00      	nop
+     50c:	0000      	movs	r0, r0
+     50e:	3000      	adds	r0, #0
+```
+
+This code first assigns `pc + 4` to `r3`, which resolves is `0x30000000`, then
+it stores the input parameter's value (`r0`, as per ARM conventions) into the
+address at `r3` (0x30000000). It then branches back to `lr`, which is the
+return address for subroutines.
+
+The C code for this function is:
+
+```c
+/**
+ * @brief Install the character output routine for printk
+ *
+ * To be called by the platform's console driver at init time. Installs a
+ * routine that outputs one ASCII character at a time.
+ * @param fn putc routine to install
+ *
+ * @return N/A
+ */
+void __printk_hook_install(int (*fn)(int))
+{
+	_char_out = fn;
+}
+```
+
+Cheating and looking at the non stripped ELF file in `samples` we can see:
+
+```bash
+$ arm-none-eabi-objdump -t samples/lpc55s69_zephyr.elf | grep 30000000
+30000000 l    d  .ramfunc       00000000 .ramfunc
+30000000 l    d  datas  00000000 datas
+30000000 g     O datas  00000004 _char_out
+30000000 g     O *ABS*  00000000 CONFIG_SRAM_BASE_ADDRESS
+30000000 g       rodata 00000000 _image_ram_start
+30000000 g       datas  00000000 __data_ram_start
+30000000 g       .ramfunc       00000000 _ramfunc_ram_end
+30000000 g       .ramfunc       00000000 _ramfunc_ram_start
+```
+
+This shows that `_char_out` is a function stored in SRAM in `.ramfunc`, and is
+located at address 0x30000000, at the very top of SRAM, corresponding to the
+value we saw above.
