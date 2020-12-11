@@ -355,10 +355,10 @@ compares the same function from the stripped ...
 10000460:	100034c7 	andne	r3, r0, r7, asr #9
 ```
 
-In this case, `ldr r1, [pc, #4]` points to 0x45C because `pc` = 0x454 + 4 =
-0x458, then adding the `[#4]` = 0x45C.
+In this case, `ldr r1, [pc, #4]` points to 0x45E because `pc` = 0x454 + 4 =
+0x458, then adding the `[#4]` = 0x45E.
 
-0X45C isn't an instruction, however, even though the disassembler tries to
+0X45E isn't an instruction, however, even though the disassembler tries to
 understand it as one (resulting in `adds` and `asrs` mnemomnics, which we
 should ignore), and the actual meaning is a 32-bit value: `0x100034b2`. The non
 stripped output correctly represents 0x45C..0x45E as a single 32-bit
