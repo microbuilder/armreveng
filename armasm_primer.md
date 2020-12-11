@@ -335,8 +335,8 @@ ourselves. For example, the following output
 compares the same function from the stripped ...
 
 ```arm
-     454:	4901      	ldr	r1, [pc, #4]	; (0x45c)
-     456:	4802      	ldr	r0, [pc, #8]	; (0x460)
+     454:	4901      	ldr	r1, [pc, #4]	; (0x45e + 0x45c)
+     456:	4802      	ldr	r0, [pc, #8]	; (0x462 + 0x460)
      458:	f001 bfb2 	b.w	0x23c0
      45c:	34b2      	adds	r4, #178	; 0xb2
      45e:	1000      	asrs	r0, r0, #32
