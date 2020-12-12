@@ -63,7 +63,8 @@ The three special purpose registers are:
   to be executed by the ARM core. This register will be incremented before
   an instruction is executed, enabling sequential program flow unless
   a different value is written to this register, causing the code to jump to
-  the new address. With Thumb instructions, `PC` is always ahead by 4 bytes.
+  the new address. **With Thumb instructions, `PC` is always ahead by 4
+  bytes.**
 - The **link register** (`R14`) contains the return address for subroutines,
   which usually holds the `pc` value from the previous function call so that
   the application can return to the calling address once execution of the
@@ -89,20 +90,28 @@ of note called the `CPSR` (Current Program Status Register):
 |--------|-----------|
 |CPSR| Current Program Status Register |
 
-This register is used to indicate a variety of important information, some of
-which is only easily accessible in assembly.
+This register is used in combination with the `s` modifier (see 
+**Mnemonic Formation** below), storing information about the results of the
+modified command in the `CPSR` register after the fact. The value held in
+this register can then control whether certain instructions are executed or
+not, such as running one command if the result was 0, and another if it was not.
+
+This information is only easily accessible in assembly.
 
 The CPSR has four key **condition flag bits** that make up the upper four bits
 of the register:
 
-- Bit 31 **N** (Negative): 1 = signed result is negative, 0 = positive or zero.
-- Bit 30 **Z** (Zero): 1 = result is zero, 0 = result is non-zero.
-- Bit 29 **C** (Carry): 1 if an `add` operation resulted in a carry out of the
-  MSB or if a `sub` operation resulted in a borrow.
-- Bit 28 **V** (Overflow): Set to 1 if a signed `add` or `sub` overflow occured.
+| Bit | Name | Description |
+|-----|------|-------------|
+| 31  | **N** | **(Negative)** 1 = signed result is negative, 0 = positive or zero |
+| 30 | **Z**  | **(Zero)** 1 = result is zero, 0 = result is non-zero |
+| 29 | **C**  | **(Carry)** 1 if an `add` operation resulted in a carry out of the MSB or if a `sub` operation resulted in a borrow |
+| 28 | **V**  | **(Overflow)** Set to 1 if a signed `add` or `sub` overflow occured |
 
-> For details on the other CPSR bits, consult the official ARM documentation or
-  one of the ARM assembly books mentionned in this guide.
+> For further details on the other CPSR bits, consult the official ARM
+  documentation or one of the ARM assembly books mentionned in this guide. It's
+  an important and frequently used register that you'll need to properly
+  understand to work with ARM assembly.
 
 ## ARM Instructions
 
@@ -183,6 +192,9 @@ code flags will also be updated based on the result of the operation.
 There are also a number of two-letter **condition modifiers** that are
 employed by appending them to the base instruction mnemonic:
 
+> **Condition Flags** refer to the bits in the `CSPR` register, described
+  earlier in this document.
+
 | Cond Code | Condition Flags  | Meaning for data instructions |
 |-----------|------------------|-------------------------------|
 | `EQ`      | Z = 1            | Equal                         |
@@ -201,8 +213,8 @@ employed by appending them to the base instruction mnemonic:
 | `LE`      | Z = 1 and N != V | Signed less than or equal     |
 
 For example, taking the `add` instruction we could append the `eq` condition
-modifier, which would result in an add instruction that only executes if the
-`Z` condition flag is set.
+modifier, which would result in an add instruction that **only executes if the
+`Z` condition flag in the `CPSR` register is set**.
 
 > Note: Conditional modifiers can **also be combined with the `s` modifier**.
 
@@ -307,7 +319,7 @@ parameter list.
 | `BX`        | Branch and exchange |
 | `BLX`       | Branch w/link and exchange |
 
-### LDR/STR (Load/Store)
+### Example: LDR/STR (Load/Store)
 
 These two instruction are important to understand, since they allow access to
 memory addresses outside the standard registers (`R0`, `R7`, etc.). 
@@ -327,8 +339,9 @@ ldr r2, [r0] # Load the value at address `r0` into `r2`
 Note that 32-bit constants cannot be encoded in 16-bit Thumb opcodes. This
 means that the constant must be stored in the text segment, close to the
 referencing instruction, and the value is typically referenced using an offset
-relative to the `PC` address (`r15`). With Thumb instructions, `PC` is always
-offset by 4 bytes.
+relative to the `PC` address (`r15`). 
+
+> **NOTE**: with Thumb instructions, `PC` is always offset by 4 bytes.
 
 When working with stripped files we often have to reassemble these values
 ourselves. For example, the following output
@@ -355,11 +368,11 @@ compares the same function from the stripped ...
 10000460:	100034c7 	andne	r3, r0, r7, asr #9
 ```
 
-In this case, `ldr r1, [pc, #4]` points to 0x45E because `pc` = 0x454 + 4 =
-0x458, then adding the `[#4]` = 0x45E.
+In this case, `ldr r1, [pc, #4]` points to 0x45C + 0x45E (for a 32-bit value)
+because `pc` = 0x454 + 4 = 0x458, then adding the `[#4]` = 0x45E.
 
-0X45E isn't an instruction, however, even though the disassembler tries to
-understand it as one (resulting in `adds` and `asrs` mnemomnics, which we
+0x45C/0x45E isn't an instruction, however, even though the disassembler tries
+to understand it as one (resulting in `adds` and `asrs` mnemomnics, which we
 should ignore), and the actual meaning is a 32-bit value: `0x100034b2`. The non
 stripped output correctly represents 0x45C..0x45E as a single 32-bit
 value, although it does still try to parse them into mnemonics.
@@ -384,6 +397,7 @@ Other common variants of this command are shown below:
 ldr r0, [r1, #8]  ; Load from address [r1 + 8 bytes]
 ldr r0, [r1, #-8] ; Load with negative offset
 ldr r0, [r1, r2]  ; Load from address [r1 + r2]
+ldr r0, [r2, r1, lsl #2] ; Load from address [r2 + r1 << 2]
 ```
 
 `LDR` is also often used in relation to pointers in C, with the following
@@ -398,6 +412,9 @@ ldr r0, [r1, #4]    ; out = intptr[1];
 ldr r0, [r1, #4]!   ; out = *(++intptr); r1 changed before load
 ldr r0, [r1], #4    ; out = *(intptr++); r1 changed after load
 ```
+
+> Other **Addressing Modes** are available for load/store, and should be
+  researched on an as-needed basis.
 
 #### STR Ra, [Rb]
 
