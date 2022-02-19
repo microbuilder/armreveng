@@ -8,12 +8,25 @@ The main target of this primer is **ARM Cortex-M** devices, which employ
 several different versions of the ARM architecture and instruction set,
 depending on the device selected:
 
-| Instruction Set    | Associated ARM Cortex Device(s) |
-| ------------------ | ------------------------------- |
-| ARMv6-M (Thumb)    | ARM Cortex M0, ARM Cortex-M0+   |
-| ARMv7-M (Thumb-2)  | ARM Cortex-M3                   |
-| ARMv7E-M (Thumb-2) | ARM Cortex M4(F), ARM Cortex M7 |
-| ARMv8-M (Thumb-2)  | ARM Cortex M23, ARM Cortex M33  |
+| Instruction Set    | Associated ARM Cortex Device(s)              |
+| ------------------ | -------------------------------------------- |
+| ARMv6-M (Thumb)    | ARM Cortex M0, ARM Cortex-M0+, ARM Cortex-M1 |
+| ARMv7-M (Thumb-2)  | ARM Cortex-M3                                |
+| ARMv7E-M (Thumb-2) | ARM Cortex M4(F), ARM Cortex M7              |
+| ARMv8-M (Thumb-2)  | ARM Cortex M23, ARM Cortex M33               |
+| ARMv8.1M (Thumb-2) | ARM Cortex M55                               |
+
+- **ARMv6-M** cores are small and very power-efficient cores.
+- **ARMv7-M** provides higher performance, additional addressing mode,
+conditional execution, bit field processing, and multiple and accumulate (MAC)
+hardware support.
+- **ARMv7E-M** adds 32-bit SIMD operations and, optionally, a floating-point
+unit with single-precision on the M4 or M7, or double-precision on the M7.
+M7 is superscalar and support tightly-coupled memory (TCM) and caches.
+- **ARMv8-M** adds TrustZone support for HW isolation of secure and non-secure
+processing environments.
+- **ARMv8.1-M** adds a vector ISA (Helium), half-precision floating point
+support, and performance monitoring unit (PMU) for enhanced debugging.
 
 For technical resources on the various architectures see:
 
