@@ -99,8 +99,8 @@ convention, though this isn't mandatory in assembly:
 
 NOTE: There are also register aliases that are sometimes used in code:
 
-- `A` indicates the four parameter arguments, which are caller-saved
-- `V` indicates the 8 variables values, which are callee-saved
+- `A` indicates the four function arguments, which are caller-saved on the stack
+- `V` indicates the eight variables arguments, which are callee-saved
 
 |Register|Alias/Synonym|
 |--------|-----------|
