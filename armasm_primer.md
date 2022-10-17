@@ -95,6 +95,28 @@ convention, though this isn't mandatory in assembly:
 - The **frame pointer** (`R11`) maybe be used by some compilers to track the
   current stack-frame.
 
+#### Register Aliases/Synonyms
+
+NOTE: There are also register aliases that are sometimes used in code:
+
+- `A` indicates the four parameter arguments, which are caller-saved
+- `V` indicates the 8 variables values, which are callee-saved
+
+|Register|Alias/Synonym|
+|--------|-----------|
+| R0 | A1 |
+| R1 | A2 |
+| R2 | A3 |
+| R3 | A4 |
+| R4 | V1 |
+| R5 | V2 |
+| R6 | V3 |
+| R7 | V4 |
+| R8 | V5 |
+| R9 | V6 |
+| R10 | V7 |
+| R11 | V8 |
+
 #### Current Program Status Register (CPSR)
 In addition to the 15 standard user registers, there is an additional register
 of note called the `CPSR` (Current Program Status Register):
