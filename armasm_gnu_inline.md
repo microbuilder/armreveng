@@ -91,6 +91,36 @@ condition register, and that we likely alter memory locations:
     : "cc", "memory"
 ```
 
+### Examples
+
+In this example:
+
+- `%0` will resolve to the address of `ztest_thread_callee_saved_regs_container`
+  as an **INPUT** operand
+- `"memory"` tells the compiler that we alter memory locations
+
+> GCC will pick the register to use, but it's generally something from
+> the caller saved registers (`r4`, `r5`, etc.)
+
+```
+__asm__ volatile (
+	"push {v1-v8};\n\t"
+	"push {r0, r1};\n\t"
+	"mov r0, r7;\n\t"
+	"ldmia %0, {v1-v8};\n\t"
+	"mov r7, r0;\n\t"
+	"pop {r0, r1};\n\t"
+	: : "r" (&ztest_thread_callee_saved_regs_container)
+	: "memory"
+);
+```
+
+NOTE: Multiple input/output operands should be comma-separated, i.e.:
+
+```
+: : "r" (&ztest_thread_callee_saved_regs_container), "r" (&other_container)
+```
+
 ## ARM Thumb Constraint Modifiers/Codes
 
 Constraint modifiers and codes are used to control which registers are used
