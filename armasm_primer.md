@@ -51,24 +51,28 @@ local general-purposes registers before they can be operated upon.
 ARM processors have 13 general-purpose 32-bit registers (`r0` through `r12`),
 and three special-purpose 32-bit registers (`r13-r15`):
 
-|Register|Description|
-|--------|-----------|
-|R0| General-purpose register 0 |
-|R1| General-purpose register 1 |
-|R2| General-purpose register 2 |
-|R3| General-purpose register 3 |
-|R4| General-purpose register 4 |
-|R5| General-purpose register 5 |
-|R6| General-purpose register 6 |
-|R7| General-purpose register 7 |
-|R8| General-purpose register 8 |
-|R9| General-purpose register 9 |
-|R10| General-purpose register 10 |
-|R11 (`fp`)| General-purpose register 11 / Frame pointer|
-|R12 (`ip`)| General-purpose register 12 / Inter-procedure scratch register|
-|R13 (`sp`)| Stack pointer |
-|R14 (`lr`)| Link register |
-|R15 (`pc`)| Program counter |
+> Register aliases are sometimes encountered in code, where `A` indicates the
+  four caller-saved function arguments, and `V` indicates the eight callee-saved
+  variables arguments.
+
+|Register|Description|Alias|
+|--------|-----------|-----|
+|R0| General-purpose register 0 |A1|
+|R1| General-purpose register 1 |A2|
+|R2| General-purpose register 2 |A3|
+|R3| General-purpose register 3 |A4|
+|R4| General-purpose register 4 |V1|
+|R5| General-purpose register 5 |V2|
+|R6| General-purpose register 6 |V3|
+|R7| General-purpose register 7 |V4|
+|R8| General-purpose register 8 |V5|
+|R9| General-purpose register 9 |V6|
+|R10| General-purpose register 10 |V7|
+|R11 (`fp`)| General-purpose register 11 / Frame pointer|V8|
+|R12 (`ip`)| General-purpose register 12 / Inter-procedure scratch register||
+|R13 (`sp`)| Stack pointer ||
+|R14 (`lr`)| Link register ||
+|R15 (`pc`)| Program counter ||
 
 The three special purpose registers are:
 
@@ -94,28 +98,6 @@ convention, though this isn't mandatory in assembly:
   when calling DLL functions.
 - The **frame pointer** (`R11`) maybe be used by some compilers to track the
   current stack-frame.
-
-#### Register Aliases/Synonyms
-
-NOTE: There are also register aliases that are sometimes used in code:
-
-- `A` indicates the four function arguments, which are caller-saved on the stack
-- `V` indicates the eight variables arguments, which are callee-saved
-
-|Register|Alias/Synonym|
-|--------|-----------|
-| R0 | A1 |
-| R1 | A2 |
-| R2 | A3 |
-| R3 | A4 |
-| R4 | V1 |
-| R5 | V2 |
-| R6 | V3 |
-| R7 | V4 |
-| R8 | V5 |
-| R9 | V6 |
-| R10 | V7 |
-| R11 | V8 |
 
 #### Current Program Status Register (CPSR)
 In addition to the 15 standard user registers, there is an additional register
