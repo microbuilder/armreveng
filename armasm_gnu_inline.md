@@ -99,7 +99,8 @@ In this example:
 
 - `%0` will resolve to the address of `ztest_thread_callee_saved_regs_container`
   as an **INPUT** operand
-- `"memory"` tells the compiler that we alter memory locations
+- `"memory"`, `"r0"`, `"r7"` tells the compiler that we alter memory locations,
+  and use `r0` and `r7` internally.
 
 > GCC will pick the register to use, but it's generally something from
 > the caller saved registers (`r4`, `r5`, etc.)
