@@ -99,8 +99,8 @@ In this example:
 
 - `%0` will resolve to the address of `ztest_thread_callee_saved_regs_container`
   as an **INPUT** operand
-- `"memory"`, `"r0"`, `"r7"` tells the compiler that we alter memory locations,
-  and use `r0` and `r7` internally.
+- `"memory"`, `"r0"` tells the compiler that we alter memory locations,
+  and use `r0` internally.
 
 > GCC will pick the register to use, but it's generally something from
 > the caller saved registers (`r4`, `r5`, etc.)
@@ -114,7 +114,7 @@ __asm__ volatile (
 	"mov r7, r0;\n\t"
 	"pop {r0, r1};\n\t"
 	: : "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory", "r0", "r7"
+	: "memory", "r0"
 );
 ```
 
@@ -133,7 +133,7 @@ registers to `%0`, etc.
 In this example:
 
 - `memory` indicates we change memory locations
-- `r4`, `r5`, `r0` , `r1`, `r7`, `r8`, `r9`, `r10`, `r11` indicates that we use
+- `r4`, `r5`, `r0` , `r1`, `r8`, `r9`, `r10`, `r11` indicates that we use
   these registers internally, causing `%0` to be assigned a register like
   `r6`, since `r4` and `r5` could be 'clobbered' by the previous instructions.
 
@@ -161,7 +161,7 @@ __asm__ volatile (
 	"mov r7, r1;\n\t"
 	"pop {r0, r1};\n\t"
 	:	: "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory", "r4", "r5", "r0" , "r1", "r7", "r8", "r9", "r10", "r11"
+	: "memory", "r4", "r5", "r0" , "r1", "r8", "r9", "r10", "r11"
 );
 ```
 
