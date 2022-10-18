@@ -41,6 +41,11 @@ Larry D. Pyeatt (Newnes, 2016)
 - [ARM Assembly Language, 2nd Edition](https://www.oreilly.com/library/view/arm-assembly-language/9781482229851/),
 William Hohl (CRC Press, 2016)
 
+For summaries of instruction sets see:
+
+- [ARM and Thumb-2 Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0001/m) (Armv7-M, Armv8-M.mainline, etc.)
+- [Thumb 16-bit Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0006/e) (Armv6-M [M0], Armv8-M.baseline [M23], etc.)
+
 ## ARM User Registers
 
 Like most modern processor designs, ARM cores require that values be stored in
