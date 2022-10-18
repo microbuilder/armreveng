@@ -137,6 +137,13 @@ In this example:
   these registers internally, causing `%0` to be assigned a register like
   `r6`, since `r4` and `r5` could be 'clobbered' by the previous instructions.
 
+> Note that `r7` has special meaning in the [Thumb Procedure Call Standard][TPCS],
+  where it's defined as "work register in function entry/exit". As such, it
+  can't be included in the clobber list, and some care needs to be taken
+  using it directly.
+
+[TPCS]: https://developer.arm.com/documentation/dui0041/c/Thumb-Procedure-Call-Standard/TPCS-definition/TPCS-register-names?lang=en
+
 ```
 __asm__ volatile (
 	"push {r4,r5,r6,r7};\n\t"
