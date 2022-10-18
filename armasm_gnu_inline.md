@@ -113,7 +113,8 @@ __asm__ volatile (
 	"ldmia %0, {v1-v8};\n\t"
 	"mov r7, r0;\n\t"
 	"pop {r0, r1};\n\t"
-	: : "r" (&ztest_thread_callee_saved_regs_container)
+	: /* No outputs */ 
+	: "r" (&ztest_thread_callee_saved_regs_container)
 	: "memory", "r0"
 );
 ```
@@ -146,7 +147,7 @@ In this example:
 
 ```
 __asm__ volatile (
-	"push {r4,r5,r6,r7};\n\t"
+	"push {r4, r5, r6, r7};\n\t"
 	"mov r4, r8;\n\t"
 	"mov r5, r9;\n\t"
 	"push {r4, r5};\n\t"
@@ -167,8 +168,9 @@ __asm__ volatile (
 	"ldmia r0!, {r4-r7};\n\t"
 	"mov r7, r1;\n\t"
 	"pop {r0, r1};\n\t"
-	: : "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory", "r4", "r5", "r0" , "r1", "r8", "r9", "r10", "r11"
+	: /* no output */
+	: "r" (&ztest_thread_callee_saved_regs_container)
+	: "memory", "r4", "r5", "r0", "r1", "r8", "r9", "r10", "r11"
 );
 ```
 
