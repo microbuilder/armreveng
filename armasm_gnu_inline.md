@@ -160,8 +160,8 @@ __asm__ volatile (
 	"ldmia r0!, {r4-r7};\n\t"
 	"mov r7, r1;\n\t"
 	"pop {r0, r1};\n\t"
-	:	: "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory", "r4", "r5", "r0" , "r1", "r8", "r9", "r10", "r11"
+	: : "r" (&ztest_thread_callee_saved_regs_container)
+	: "memory", "r4", "r5", "r0" , "r1", "r7", "r8", "r9", "r10", "r11"
 );
 ```
 
