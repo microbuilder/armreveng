@@ -113,7 +113,7 @@ __asm__ volatile (
 	"mov r7, r0;\n\t"
 	"pop {r0, r1};\n\t"
 	: : "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory"
+	: "memory", "r0", "r7"
 );
 ```
 
