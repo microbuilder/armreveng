@@ -93,6 +93,8 @@ condition register, and that we likely alter memory locations:
 
 ### Examples
 
+#### Input Operand 
+
 In this example:
 
 - `%0` will resolve to the address of `ztest_thread_callee_saved_regs_container`
@@ -119,6 +121,47 @@ NOTE: Multiple input/output operands should be comma-separated, i.e.:
 
 ```
 : : "r" (&ztest_thread_callee_saved_regs_container), "r" (&other_container)
+```
+
+#### Clobber List
+
+Any registers used in the inline assembly need to be added to the clobber list,
+so that GCC is aware that those registers shouldn't be used when assigning
+registers to `%0`, etc.
+
+In this example:
+
+- `memory` indicates we change memory locations
+- `r4`, `r5`, `r0` , `r1`, `r7`, `r8`, `r9`, `r10`, `r11` indicates that we use
+  these registers internally, causing `%0` to be assigned a register like
+  `r6`, since `r4` and `r5` could be 'clobbered' by the previous instructions.
+
+```
+__asm__ volatile (
+	"push {r4,r5,r6,r7};\n\t"
+	"mov r4, r8;\n\t"
+	"mov r5, r9;\n\t"
+	"push {r4, r5};\n\t"
+	"mov r4, r10;\n\t"
+	"mov r5, r11;\n\t"
+	"push {r4, r5};\n\t"
+	"push {r0, r1};\n\t"
+	"mov r1, r7;\n\t"
+	"mov r0, %0;\n\t"
+	"ldr r4, [r0, #16];\n\t"
+	"mov r8, r4;\n\t"
+	"ldr r4, [r0, #20];\n\t"
+	"mov r9, r4;\n\t"
+	"ldr r4, [r0, #24];\n\t"
+	"mov r10, r4;\n\t"
+	"ldr r4, [r0, #28];\n\t"
+	"mov r11, r4;\n\t"
+	"ldmia r0!, {r4-r7};\n\t"
+	"mov r7, r1;\n\t"
+	"pop {r0, r1};\n\t"
+	:	: "r" (&ztest_thread_callee_saved_regs_container)
+	: "memory", "r4", "r5", "r0" , "r1", "r7", "r8", "r9", "r10", "r11"
+);
 ```
 
 ## ARM Thumb Constraint Modifiers/Codes
