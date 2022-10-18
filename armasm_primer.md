@@ -98,19 +98,18 @@ The three main special purpose registers are:
   the new address. **With Thumb instructions, `PC` is always ahead by 4
   bytes.**
 
-Additionally, there are several registers that are used by high-level
+Additionally, there are two registers that are used by high-level
 languages by convention, though this isn't mandatory in assembly:
 
-- The **frame pointer** (`R11` for Arm, `R7` for Thumb) is used by the C
-  compiler to track the stack frame. The frame pointer has the same value
-  throughout the execution of the function, so all local data can be accessed
-  via hard-coded offsets from the FP. The FP is set to a fixed value within
-  the stack frame, just below the last argument passed on the stack. The
-  stack pointer, by contrast, points to the first word after the frame.
+- The **frame pointer** (`R11` for Arm, `R7` for Thumb) is used by the
+  compiler to store the value of the stack just before the function is
+  called. It points to the top of the frame. From the value of the fp
+  down to the value of the sp is the “frame” that is allocated for the
+  function call. The frame pointer has the same value throughout the
+  execution of the function, so all local data can be accessed via
+  hard-coded offsets from the FP.
 - The **inter-procedure scratch register** (`R12`) is used by the C library
   when calling DLL functions.
-- The **frame pointer** (`R11`) maybe be used by some compilers to track the
-  current stack-frame.
 
 #### Current Program Status Register (CPSR)
 In addition to the 15 standard user registers, there is an additional register
