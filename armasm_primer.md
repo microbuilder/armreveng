@@ -62,22 +62,24 @@ and three special-purpose 32-bit registers (`r13-r15`):
 
 |Register|Description|Alias|
 |--------|-----------|-----|
-|R0| General-purpose register 0 |A1|
-|R1| General-purpose register 1 |A2|
-|R2| General-purpose register 2 |A3|
-|R3| General-purpose register 3 |A4|
-|R4| General-purpose register 4 |V1|
-|R5| General-purpose register 5 |V2|
-|R6| General-purpose register 6 |V3|
-|R7| General-purpose register 7 |V4|
-|R8| General-purpose register 8 |V5|
-|R9| General-purpose register 9 |V6|
-|R10| General-purpose register 10 |V7|
-|R11 (`fp`)| General-purpose register 11 / Frame pointer|V8|
-|R12 (`ip`)| General-purpose register 12 / Inter-procedure scratch register||
-|R13 (`sp`)| Stack pointer ||
-|R14 (`lr`)| Link register ||
-|R15 (`pc`)| Program counter ||
+|R0| General-purpose register 0 |`a1`|
+|R1| General-purpose register 1 |`a2`|
+|R2| General-purpose register 2 |`a3`|
+|R3| General-purpose register 3 |`a4`|
+|R4| General-purpose register 4 |`v1`|
+|R5| General-purpose register 5 |`v2`|
+|R6| General-purpose register 6 |`v3`|
+|R7| General-purpose register 7 |`v4`, `wr` ([Thumb][TRPC])|
+|R8| General-purpose register 8 |`v5`|
+|R9| General-purpose register 9 |`v6`|
+|R10| General-purpose register 10 |`v7`|
+|R11| General-purpose register 11 / Frame pointer|`v8`, `fp`|
+|R12| General-purpose register 12 / Inter-procedure scratch register|`ip`|
+|R13| Stack pointer |`sp`|
+|R14| Link register |`lr`|
+|R15| Program counter |`pc`|
+
+[TRPC]: https://developer.arm.com/documentation/dui0041/c/Thumb-Procedure-Call-Standard/TPCS-definition/TPCS-register-names?lang=en
 
 The three special purpose registers are:
 
