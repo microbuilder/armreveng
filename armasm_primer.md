@@ -81,26 +81,32 @@ and three special-purpose 32-bit registers (`r13-r15`):
 
 [TRPC]: https://developer.arm.com/documentation/dui0041/c/Thumb-Procedure-Call-Standard/TPCS-definition/TPCS-register-names?lang=en
 
-The three special purpose registers are:
+The three main special purpose registers are:
 
+- The **stack pointer** (`R13`) holds the address where the stack currently
+  ends. As stack usage increases, this number will decrease towards the top
+  of the stack (though logically it seems like the bottom since the stack
+  'grows' downward).
+- The **link register** (`R14`) contains the return address for subroutines,
+  which usually holds the `pc` value from the previous function call so that
+  the application can return to the calling address once execution of the
+  function has completed.
 - The **program counter** (`R15`) contains the address of the next instruction
   to be executed by the ARM core. This register will be incremented before
   an instruction is executed, enabling sequential program flow unless
   a different value is written to this register, causing the code to jump to
   the new address. **With Thumb instructions, `PC` is always ahead by 4
   bytes.**
-- The **link register** (`R14`) contains the return address for subroutines,
-  which usually holds the `pc` value from the previous function call so that
-  the application can return to the calling address once execution of the
-  function has completed.
-- The **stack pointer** (`R13`) holds the address where the stack currently
-  ends. As stack usage increases, this number will decrease towards the top
-  of the stack (though logically it seems like the bottom since the stack
-  'grows' downward).
 
-Additionally, there are two registers that are used by high-level languages by
-convention, though this isn't mandatory in assembly:
+Additionally, there are several registers that are used by high-level
+languages by convention, though this isn't mandatory in assembly:
 
+- The **frame pointer** (`R11` for Arm, `R7` for Thumb) is used by the C
+  compiler to track the stack frame. The frame pointer has the same value
+  throughout the execution of the function, so all local data can be accessed
+  via hard-coded offsets from the FP. The FP is set to a fixed value within
+  the stack frame, just below the last argument passed on the stack. The
+  stack pointer, by contrast, points to the first word after the frame.
 - The **inter-procedure scratch register** (`R12`) is used by the C library
   when calling DLL functions.
 - The **frame pointer** (`R11`) maybe be used by some compilers to track the
