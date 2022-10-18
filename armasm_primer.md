@@ -69,7 +69,7 @@ and three special-purpose 32-bit registers (`r13-r15`):
 |R4| General-purpose register 4 |`v1`|
 |R5| General-purpose register 5 |`v2`|
 |R6| General-purpose register 6 |`v3`|
-|R7| General-purpose register 7 |`v4`, `wr` ([Thumb][TRPC])|
+|R7| General-purpose register 7 / Thumb work register in function entry/exit |`v4`, `wr` ([Thumb][TRPC])|
 |R8| General-purpose register 8 |`v5`|
 |R9| General-purpose register 9 |`v6`|
 |R10| General-purpose register 10 |`v7`|
