@@ -73,13 +73,11 @@ For example, the input operand list:
 
 ### clobber list
 
-The fourth and final section in the inline assembly is the **clobber list**,
-which informs the compiler which values are changed by the assembly code.
+The fourth and final section in the inline assembly is the **clobber list**.
 
 When the compiler selects which registers to use to represent input and output
 operands (`%0`, `%1`, etc.), it does not use any of the clobbered registers.
-As a result, clobbered registers are available for any use in the assembler
-code.
+As a result, clobbered registers can be freely used in the inline code.
 
 In the comma-separated clobber list, You can include:
 
