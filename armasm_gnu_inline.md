@@ -76,6 +76,11 @@ For example, the input operand list:
 The fourth and final section in the inline assembly is the **clobber list**,
 which informs the compiler which values are changed by the assembly code.
 
+When the compiler selects which registers to use to represent input and output
+operands (`%0`, `%1`, etc.), it does not use any of the clobbered registers.
+As a result, clobbered registers are available for any use in the assembler
+code.
+
 In the comma-separated clobber list, You can include:
 
 - Specific core or VFP registers (`"r12"`)
@@ -127,9 +132,9 @@ NOTE: Multiple input/output operands should be comma-separated, i.e.:
 
 #### Clobber List
 
-Any registers used in the inline assembly need to be added to the clobber list,
-so that GCC is aware that those registers shouldn't be used when assigning
-registers to `%0`, etc.
+Any registers that can not be used for input/output assignment need to be
+added to the clobber list, so that GCC is aware that those registers shouldn't
+be used when assigning registers to `%0`, etc.
 
 In this example:
 
