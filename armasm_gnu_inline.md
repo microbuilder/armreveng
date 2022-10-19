@@ -94,6 +94,8 @@ condition register, and that we likely alter memory locations:
     : "cc", "memory"
 ```
 
+- Documentation: https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#Clobbers-and-Scratch-Registers
+
 ### Examples
 
 #### Input Operand 
