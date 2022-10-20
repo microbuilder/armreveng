@@ -1,4 +1,4 @@
-# ARM THUMB Assembly to Machine Code
+# ARM THUMB(-2) Assembly to Machine Code
 
 How ARM assembly mnemonics/parameters are converted to and from machine code.
 
