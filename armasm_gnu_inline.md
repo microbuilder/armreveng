@@ -96,6 +96,11 @@ condition register, and that we likely alter memory locations:
 
 - Documentation: https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#Clobbers-and-Scratch-Registers
 
+> Note that `r7` has special meaning in the [Thumb Procedure Call Standard][TPCS],
+  where it's defined as "work register in function entry/exit" and typically used
+  as the frame pointer (`fp`). As such, it can't be included in the clobber list,
+  and some care needs to be taken using it directly.
+
 ### Examples
 
 #### Input Operand 
@@ -139,43 +144,51 @@ be used when assigning registers to `%0`, etc.
 In this example:
 
 - `memory` indicates we change memory locations
-- `r4`, `r5`, `r0` , `r1`, `r8`, `r9`, `r10`, `r11` indicates that we use
-  these registers internally, causing `%0` to be assigned a register like
-  `r6`, since `r4` and `r5` could be 'clobbered' by the previous instructions.
-
-> Note that `r7` has special meaning in the [Thumb Procedure Call Standard][TPCS],
-  where it's defined as "work register in function entry/exit". As such, it
-  can't be included in the clobber list, and some care needs to be taken
-  using it directly.
+- `r0`, `r2`, `r3`, indicates that we use these registers internally, causing
+  `%0` to be assigned a register outside this range.
 
 [TPCS]: https://developer.arm.com/documentation/dui0041/c/Thumb-Procedure-Call-Standard/TPCS-definition/TPCS-register-names?lang=en
 
 ```
 __asm__ volatile (
-	"push {r4, r5, r6, r7};\n\t"
-	"mov r4, r8;\n\t"
-	"mov r5, r9;\n\t"
-	"push {r4, r5};\n\t"
-	"mov r4, r10;\n\t"
-	"mov r5, r11;\n\t"
-	"push {r4, r5};\n\t"
-	"push {r0, r1};\n\t"
-	"mov r1, r7;\n\t"
-	"mov r0, %0;\n\t"
-	"ldr r4, [r0, #16];\n\t"
-	"mov r8, r4;\n\t"
-	"ldr r4, [r0, #20];\n\t"
-	"mov r9, r4;\n\t"
-	"ldr r4, [r0, #24];\n\t"
-	"mov r10, r4;\n\t"
-	"ldr r4, [r0, #28];\n\t"
-	"mov r11, r4;\n\t"
-	"ldmia r0!, {r4-r7};\n\t"
-	"mov r7, r1;\n\t"
-	"pop {r0, r1};\n\t"
-	: /* no output */
-	: "r" (&ztest_thread_callee_saved_regs_container)
-	: "memory", "r4", "r5", "r0", "r1", "r8", "r9", "r10", "r11"
+    /* Stash r4-r11 in stack, they will be restored much later in
+        * another inline asm -- that should be reworked since stack
+        * must be balanced when we leave any inline asm. We could
+        * use simply an alternative stack for storing them instead
+        * of the function's stack.
+        */
+    "push {r4-r7};\n\t"
+    "mov r2, r8;\n\t"
+    "mov r3, r9;\n\t"
+    "push {r2, r3};\n\t"
+    "mov r2, r10;\n\t"
+    "mov r3, r11;\n\t"
+    "push {r2, r3};\n\t"
+
+    /* Save r0 and r7 since we want to preserve them but they
+        * are used below: r0 is used as a copy of struct pointer
+        * we don't want to mess and r7 is the frame pointer which
+        * we must not clobber it.
+        */
+    "push {r0, r7};\n\t"
+
+    /* Load struct into r4-r11 */
+    "mov r0, %0;\n\t"
+    "add r0, #16;\n\t"
+    "ldmia r0!, {r4-r7};\n\t"
+    "mov r8, r4;\n\t"
+    "mov r9, r5;\n\t"
+    "mov r10, r6;\n\t"
+    "mov r11, r7;\n\t"
+    "sub r0, #32;\n\t"
+    "ldmia r0!, {r4-r7};\n\t"
+
+    /* Restore r0 and r7 */
+    "pop {r0, r7};\n\t"
+
+    : /* no output */
+    : "r" (&ztest_thread_callee_saved_regs_container)
+    : "memory", "r0", "r2", "r3"
 );
 ```
 
