@@ -42,7 +42,11 @@ For summaries of instruction sets see:
 For exhaustive details of instructions see:
 
 > For Cortex-M devices, you will usually need to look at the 16-bit Thumb
-  version of instructions, taking into the specific limitations.
+  instructions and limitations, and whether you are using Thumb on v6 or
+  v7,8. For example, on Armv6-M (Cortex M0), you can typically only operate
+  on the `lo` (`{r0-r7}`) registers, compared to Armv7-M and higher
+  (Cortex M3/M4/M7) where you can use the full range of `{r0-r11}`,
+  requiring fewer instructions for similar behaviour.
 
 - [Arm Compiler armasm Reference Guide](https://developer.arm.com/documentation/dui0802/latest)
 
