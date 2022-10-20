@@ -255,7 +255,7 @@ The table below lists core registers for ARM devices and their usage:
 | R4         | Register variable |
 | R5         | Register variable |
 | R6         | Register variable |
-| R7         | Register variable |
+| R7         | Register variable (Thumb `fp`) |
 | R8         | Register variable |
 | R9 (`rfp`) | Register variable, Real frame pointer |
 | R10 (`sl`) | Stack limit |
