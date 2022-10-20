@@ -34,24 +34,24 @@ For technical resources on the various architectures see:
 - [DDI0403: ARM v7-M Architecture Reference Manual](https://developer.arm.com/documentation/ddi0403/latest/)
 - [DDI0553: ARM v8-M Architecture Reference Manual](https://developer.arm.com/documentation/ddi0553/latest/)
 
-For a comprehensive treatment on the subject see:
-
-- [Modern Assembly Language Programming with the ARM Processor](https://www.elsevier.com/books/modern-assembly-language-programming-with-the-arm-processor/pyeatt/978-0-12-803698-3),
-Larry D. Pyeatt (Newnes, 2016)
-- [ARM Assembly Language, 2nd Edition](https://www.oreilly.com/library/view/arm-assembly-language/9781482229851/),
-William Hohl (CRC Press, 2016)
-
 For summaries of instruction sets see:
 
-- [ARM and Thumb-2 Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0001/m) (Armv7-M, Armv8-M.mainline, etc.)
-- [Thumb 16-bit Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0006/e) (Armv6-M [M0], Armv8-M.baseline [M23], etc.)
+- [QRC0001: ARM and Thumb-2 Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0001/latest) (Armv7-M, Armv8-M.mainline, etc.)
+- [QRC0006: Thumb 16-bit Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0006/latest) (Armv6-M [M0], Armv8-M.baseline [M23], etc.)
 
 For exhaustive details of instructions see:
 
 > For Cortex-M devices, you will usually need to look at the 16-bit Thumb
   version of instructions, taking into the specific limitations.
 
-- [Arm Compiler armasm Reference Guide](https://developer.arm.com/documentation/dui0802/b)
+- [Arm Compiler armasm Reference Guide](https://developer.arm.com/documentation/dui0802/latest)
+
+Relevant published books:
+
+- [Modern Assembly Language Programming with the ARM Processor](https://www.elsevier.com/books/modern-assembly-language-programming-with-the-arm-processor/pyeatt/978-0-12-803698-3),
+Larry D. Pyeatt (Newnes, 2016)
+- [ARM Assembly Language, 2nd Edition](https://www.oreilly.com/library/view/arm-assembly-language/9781482229851/),
+William Hohl (CRC Press, 2016)
 
 ## ARM User Registers
 
