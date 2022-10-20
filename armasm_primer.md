@@ -30,9 +30,9 @@ support, and performance monitoring unit (PMU) for enhanced debugging.
 
 For technical resources on the various architectures see:
 
-- [ARM v6-M Architecture Reference Manual](https://static.docs.arm.com/ddi0419/d/DDI0419D_armv6m_arm.pdf)
-- [ARM v7-M Architecture Reference Manual](https://static.docs.arm.com/ddi0403/eb/DDI0403E_B_armv7m_arm.pdf)
-- [ARM v8-M Architecture Reference Manual](https://static.docs.arm.com/ddi0553/a/DDI0553A_e_armv8m_arm.pdf)
+- [DDI0419: ARM v6-M Architecture Reference Manual](https://developer.arm.com/documentation/ddi0419/latest/)
+- [DDI0403: ARM v7-M Architecture Reference Manual](https://developer.arm.com/documentation/ddi0403/latest/)
+- [DDI0553: ARM v8-M Architecture Reference Manual](https://developer.arm.com/documentation/ddi0553/latest/)
 
 For a comprehensive treatment on the subject see:
 
