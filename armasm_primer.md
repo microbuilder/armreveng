@@ -46,6 +46,13 @@ For summaries of instruction sets see:
 - [ARM and Thumb-2 Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0001/m) (Armv7-M, Armv8-M.mainline, etc.)
 - [Thumb 16-bit Instruction Set Quick Reference Card](https://developer.arm.com/documentation/qrc0006/e) (Armv6-M [M0], Armv8-M.baseline [M23], etc.)
 
+For exhaustive details of instructions see:
+
+> For Cortex-M devices, you will usually need to look at the 16-bit Thumb
+  version of instructions, taking into the specific limitations.
+
+- [Arm Compiler armasm Reference Guide](https://developer.arm.com/documentation/dui0802/b)
+
 ## ARM User Registers
 
 Like most modern processor designs, ARM cores require that values be stored in
