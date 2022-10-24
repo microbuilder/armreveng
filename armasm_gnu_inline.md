@@ -101,6 +101,18 @@ condition register, and that we likely alter memory locations:
   as the frame pointer (`fp`). As such, it can't be included in the clobber list,
   and some care needs to be taken using it directly.
 
+### Best Practices
+
+#### Name all outputs/inputs
+
+You should generally **name outputs/inputs** rather than relying on the default
+convention of `%0`, `%1`, etc. 
+
+The benefit to naming them is **maintainability**. If someone inherits your
+inline ASM at a later date, and changes the output/input list, but doesn't
+update the default `%n` values, you can end up with non-obvious errors at
+run time. Using names outputs/inputs avoids this issue.
+
 ### Examples
 
 #### Input Operand 
