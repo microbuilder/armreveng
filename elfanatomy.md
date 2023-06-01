@@ -116,6 +116,29 @@ Noteworthy sections include:
   executable sections. Use the `-D` flag to disassemble the contents of every
   section in the image, including `rodata`.
 
+## ABI Details from ELF Files
+
+You can get basic ABI (Application Binary Interface) details from a file via:
+
+```bash
+$ arm-none-eabi-readelf -A samples/lpc55s69_zephyr.elf 
+Attribute Section: aeabi
+File Attributes
+  Tag_CPU_name: "Cortex-M33"
+  Tag_CPU_arch: v8-M.mainline
+  Tag_CPU_arch_profile: Microcontroller
+  Tag_THUMB_ISA_use: Yes
+  Tag_ABI_PCS_wchar_t: 4
+  Tag_ABI_FP_denormal: Needed
+  Tag_ABI_FP_exceptions: Needed
+  Tag_ABI_FP_number_model: IEEE 754
+  Tag_ABI_align_needed: 8-byte
+  Tag_ABI_enum_size: small
+  Tag_ABI_optimization_goals: Aggressive Size
+  Tag_CPU_unaligned_access: v6
+  Tag_DSP_extension: Allowed
+```
+
 ## TODO: Parsing stripped `.text` sections
 
 How do we bridge the gap in understanding between the large `.text` section in
