@@ -2,6 +2,13 @@
 
 Information on the structure and analysis of 32-bit ARM ELF image dumps.
 
+## What is an ELF File?
+
+ELF is a common output format used by numerous compilers, including GCC.
+The files are made up of `sections`, including program data and debug
+data. Debug data is often based on the related DWARF format, and is typically
+placed in `.debug_*` sections in the ELF file.
+
 ## Prerequisites
 
 ### Sample ELF file
@@ -17,6 +24,7 @@ $ scripts/bin2elf.sh samples/lpc55s69_zephyr.bin firmware.elf 0
 
 ELF images are arranged into sections, with the name and number of sections
 varying based on the image you are analysing.
+
 ### Stripped ELF files
 
 A stripped ARM ELF file, such as we'd get with a firmware dump that we've
