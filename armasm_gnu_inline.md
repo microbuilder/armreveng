@@ -277,6 +277,51 @@ The table below lists core registers for ARM devices and their usage:
 | R14 (`lr`) | Link register, Workspace |
 | R15 (`pc`) | Program counter |
 
+
+## Examples
+
+The function below demonstrates how to work with a C function with a parameter
+in GNU inline assembly, assigning the parameter as an input to a general-purpose
+register:
+
+> `vstmia` stores multiple SIMD or FP registers to consecutive memory, using the
+> address from a general-purpose register. The `ia` indicates **increment-after**,
+> meaning the address in the general-purpose register will be updated one the
+> operation is completed.
+
+```c
+static void ALWAYS_INLINE z_arm_fpu_caller_save(struct __fpu_sf *fpu)
+{
+	__asm__ volatile (
+		"vstmia %0, {s0-s15};\n"
+		: : "r" (&fpu->s[0])
+		: "memory"
+		);
+#if CONFIG_VFP_FEATURE_REGS_S64_D32
+	__asm__ volatile (
+		"vstmia %0, {d16-d31};\n\t"
+		:
+		: "r" (&fpu->d[0])
+		: "memory"
+		);
+#endif
+}
+```
+
+The non-inline version of this code might resemble something like this:
+
+> `r2` includes **register-writeback** (`!`), meaning it's value will be
+> updated after the operation. Without `!` the register would not be updated
+> despite the `ia` in the mnemonic.
+
+```
+mov r2, sp
+vstmia r2!, {s0-s15}
+#ifdef CONFIG_VFP_FEATURE_REGS_S64_D32
+vstmia r2!, {d16-d31}
+#endif
+```
+
 ## Sources and Further Reading
 
 - [ARM inline assembly](http://www.ethernut.de/en/documents/arm-inline-asm.html)
