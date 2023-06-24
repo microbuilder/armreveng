@@ -153,6 +153,43 @@ of the register:
   an important and frequently used register that you'll need to properly
   understand to work with ARM assembly.
 
+## Arm Procedure Call Standard (APCS)
+
+The [ARM Procedure Call Standard (APCS)](https://developer.arm.com/documentation/dui0041/c/ARM-Procedure-Call-Standard)
+is a set of rules that regulates and facilitates calls between separately compiled
+or assembled program fragments. The APCS defines:
+
+- Constraints on the use of registers
+- Stack conventions
+- Passing of machine-level arguments and the return of machine-level results at
+  externally visible function or procedure calls.
+
+### Calling functions and passing arguments
+
+When a function calls a subroutine, it places the return address in the link register
+`lr`. The arguments (if any) are passed in registers `r0-r3`, starting with `r0`.
+
+If there are more than four arguments, or they are too large to fit in the 32-bit
+registers, they are passed on the stack.
+
+### Temporary storage
+
+Registers `r0-r3` and `r12` can be used for temporary storage if they were not used
+for arguments, or if the argument value is no longer needed. These registers are
+corruptible by the subroutine.
+
+### Preserved registers
+
+Registers `r4-r11` must be preserved by a subroutine. If any must be used, they must
+be saved before use, and restored before returning. This is typically done by pushing
+them to, and popping from, the stack.
+
+### Returning from subroutines
+
+Because the return address has been stored in the link register, the `BX lr` instruction
+will reload the `pc` with the return address value from the `lr`. If the function
+returns a value, it will be passed through register `r0`.
+
 ## ARM Instructions
 
 An ARM assembly instruction is made up of a short **mnemonic** (a short string
